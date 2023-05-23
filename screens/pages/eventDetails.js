@@ -56,16 +56,15 @@ import moment from 'moment/moment';
 import Video from 'react-native-video';
 import MetaMaskSDK from '@metamask/sdk';
 import BackgroundTimer from 'react-native-background-timer';
-import type {Node} from 'react';
 
 const sdk = new MetaMaskSDK({
   openDeeplink: (link) => {
-    Linking.openURL(link); // Use React Native Linking method or another way of opening deeplinks.
+    Linking.openURL(link);
   },
-  timer: BackgroundTimer, // To keep the dapp alive once it goes to background.
+  timer: BackgroundTimer,
   dappMetadata: {
-    name: 'BackStage', // The name of your dapp.
-    url: 'https://bkstage.io/', // The URL of your website.
+    name: 'BackStage',
+    url: 'https://bkstage.io/',
   },
 });
 
@@ -74,7 +73,7 @@ const ethereum = sdk.getProvider();
 const wprovider = new ethers.providers.Web3Provider(ethereum);
 
 const deviceWidth = Dimensions.get('window').width;
-export const EventDetailsScreen: () => Node = ({route}) => {
+export const EventDetailsScreen = ({route}) => {
   const [userInfo, setUserInfo] = useState();
   const _userInfo = useSelector(state => state.userInfoReducer).userInfo;
   const country = useSelector(state => state.locationInfoReducer).locationInfo;
@@ -199,7 +198,6 @@ export const EventDetailsScreen: () => Node = ({route}) => {
 
   const buyInBUSD = async provider => {
     // console.log("account", account, chainId);
-    // const provider = new ethers.providers.Web3Provider(provide);
     const chainId = Number(provider.provider.chainId);
     // console.log('ChainId', chainId);
     if (chainId !== 56 && chainId !== 97) {
@@ -277,61 +275,23 @@ export const EventDetailsScreen: () => Node = ({route}) => {
     }
   };
 
-  const buyWithBUSD = async () => {
+  const buyWithBUSD = () => {
     try{
-      if(!ethereum.selectedAddress) {
-        ethereum.request({method: 'eth_requestAccounts'})
+      ethereum.request({method: 'eth_requestAccounts'})
+      .then((result) => {
+        console.log(result[0])
+        console.log("ChainId=>", Number(ethereum.chainId));
+        buyInBUSD(wprovider);
+        wprovider.getBalance(result[0])
         .then((result) => {
-          console.log(result[0])
-          // const chainId = Number(provider.provider.chainId);
-          console.log("ChainId=>", Number(ethereum.chainId));
-          buyInBUSD(wprovider);
-          wprovider.getBalance(result[0])
-          .then((result) => {
-            const balanceInETH = ethers.utils.formatEther(result);
-            console.log("Balance=>", balanceInETH);
-          })
+          const balanceInETH = ethers.utils.formatEther(result);
+          console.log("Balance=>", balanceInETH);
         })
-        .catch(e => console.log("error=>", e))
-      }
-      else {
-        const accounts = await ethereum.request({method: 'eth_accounts'});
-        const balance = await wprovider.getBalance(ethereum.selectedAddress);
-        const balanceInETH = ethers.utils.formatEther(balance);
-        console.log("ChainId=>", ethereum.chainId);
-        console.log("Balance=>", balanceInETH);
-      }
-      // console.log(ethereum);
-      // const accounts = await ethereum.request({method: 'eth_accounts'});
-      // const accounts = await wprovider.request({method: 'eth_accounts'});
-      // const balance = await wprovider.getBalance(accounts[0]);
-      // const balanceInETH = ethers.utils.formatEther(balance);
-      
-      // console.log(balanceInETH);
+      })
+      .catch(e => console.log("error=>", e))
     } catch(e) {
       console.log('ERROR=>', e)
     }
-
-    // let provide = null;
-    // if (_provide === 'Bitkeep' && window.isBitKeep) {
-    //   provide = window.bitkeep.ethereum;
-    // } else if (_provide === 'Metamask' && window.ethereum) {
-    //   provide = window.ethereum;
-    // }
-
-    // if (provide === null) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'You need to install ' + _provide,
-    //   });
-    //   return;
-    // }
-
-    // const accounts = await provide.request({method: 'eth_accounts'});
-    // if (accounts.length === 0) {
-    //   await provide.request({method: 'eth_requestAccounts'});
-    // }
-    // buyInBUSD(wprovider);
   };
 
   const butWithBKSWallet = () => {
@@ -874,12 +834,7 @@ export const EventDetailsScreen: () => Node = ({route}) => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.payWallet}
-                    // onPress={() => Linking.openURL(butWithBKSWallet())}>
                     onPress={() =>
-                      // Linking.openURL(
-                      //   'https://metamask.app.link/send/0x5247D66a62b3349e97b80E6bf7A3E4Bb0123ccA1@56?value=1e19',
-                      // )
-                      // Linking.openURL(buyWithBUSD())
                       buyWithBUSD()
                     }>
                     <Image source={metamaskImg} />
