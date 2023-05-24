@@ -279,6 +279,7 @@ export const EventDetailsScreen = ({route}) => {
     try{
       ethereum.request({method: 'eth_requestAccounts'})
       .then((result) => {
+        toggleModal();
         console.log(result[0])
         console.log("ChainId=>", Number(ethereum.chainId));
         buyInBUSD(wprovider);
